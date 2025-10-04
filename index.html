@@ -166,7 +166,7 @@
         }
         
         .number-button.active {
-            color: var(--text-color); /* Isse active button ka color safed ho jayega */
+            color: var(--text-color);
         }
 
         .number-button:active {
@@ -190,7 +190,6 @@
                 inset -4px -4px 8px var(--inset-shadow-light);
         }
 
-        /* Yah code focus outline ko hatata hai */
         .custom-input:focus {
             outline: none;
         }
@@ -212,11 +211,8 @@
             transition: all 0.2s ease-in-out;
         }
         
-        /* --- START OF CHANGE --- */
         .load-button:hover {
-            /* color: var(--primary-color);  <-- मैंने इस लाइन को हटा दिया है */
         }
-        /* --- END OF CHANGE --- */
 
         .load-button:active {
              box-shadow: 
@@ -402,13 +398,13 @@
         const numberButtons = document.querySelectorAll('.number-button');
         
         numberButtons.forEach(button => {
-            button.addEventListener('click', (e) => { // 'e' event object যোগ করা হয়েছে
-                e.preventDefault(); // ডিফল্ট ব্রাউজার অ্যাকশন বন্ধ করা হয়েছে
+            button.addEventListener('click', (e) => {
+                if (document.activeElement) document.activeElement.blur();
+                e.preventDefault();
                 numberButtons.forEach(btn => btn.classList.remove('active'));
                 button.classList.add('active');
                 playerCount = parseInt(button.getAttribute('data-count'));
                 customCount.value = playerCount;
-                customCount.blur(); // কাস্টম ইনপুট থেকে ফোকাস সরানো হয়েছে
             });
         });
         
@@ -420,6 +416,8 @@
         });
         
         loadButton.addEventListener('click', () => {
+            if (document.activeElement) document.activeElement.blur();
+            
             const url = youtubeLink.value.trim();
             videoId = extractVideoId(url);
             
@@ -435,13 +433,14 @@
             inputScreen.classList.add('hidden');
             videoScreen.classList.remove('hidden');
 
-            // Set the initial state: videos are muted.
             isMuted = true;
             
             createPlayers(playerCount);
         });
         
         playAllButton.addEventListener('click', () => {
+            if (document.activeElement) document.activeElement.blur();
+            
             const buttonIcon = playAllButton.querySelector('.fas');
             const buttonText = playAllButton.querySelector('.btn-text');
 
@@ -459,8 +458,15 @@
             isPlaying = !isPlaying;
         });
 
-        closeAllButton.addEventListener('click', () => closeAllVideos());
-        toggleMuteAllButton.addEventListener('click', () => toggleMuteAll());
+        closeAllButton.addEventListener('click', () => {
+            if (document.activeElement) document.activeElement.blur();
+            closeAllVideos();
+        });
+
+        toggleMuteAllButton.addEventListener('click', () => {
+            if (document.activeElement) document.activeElement.blur();
+            toggleMuteAll();
+        });
         
         function extractVideoId(url) {
             const regExp = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
@@ -532,28 +538,24 @@
             const buttonText = toggleMuteAllButton.querySelector('.btn-text');
 
             if (isMuted) {
-                // If videos are muted, unmute them
                 players.forEach(player => {
                     if (player && typeof player.unMute === 'function') {
                         player.unMute();
                     }
                 });
 
-                // And change the button to show "Unmute All"
                 buttonIcon.classList.remove('fa-volume-mute');
                 buttonIcon.classList.add('fa-volume-up');
                 buttonText.textContent = 'Unmute All';
                 isMuted = false;
 
             } else {
-                // If videos are not muted, mute them
                 players.forEach(player => {
                     if (player && typeof player.mute === 'function') {
                         player.mute();
                     }
                 });
                 
-                // And change the button back to "Mute All"
                 buttonIcon.classList.remove('fa-volume-up');
                 buttonIcon.classList.add('fa-volume-mute');
                 buttonText.textContent = 'Mute All';
@@ -567,7 +569,6 @@
             videoScreen.classList.add('hidden');
             inputScreen.classList.remove('hidden');
 
-            // Reset the mute button to its default state
             isMuted = false;
             const muteButtonIcon = toggleMuteAllButton.querySelector('.fas');
             const muteButtonText = toggleMuteAllButton.querySelector('.btn-text');
@@ -575,7 +576,6 @@
             muteButtonIcon.classList.add('fa-volume-mute');
             muteButtonText.textContent = 'Mute All';
 
-            // Reset the play/pause button to its default state
             isPlaying = false;
             const playButtonIcon = playAllButton.querySelector('.fas');
             const playButtonText = playAllButton.querySelector('.btn-text');
