@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aizoid - Premium YouTube Controller</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #2c2f38;
+            --primary-color: #885ff8;
+            --primary-glow: rgba(136, 95, 248, 0.4);
+            --text-color: #e0e0e0;
+            --text-muted: #8a8a8a;
+            
+            --shadow-dark: rgba(20, 20, 25, 0.6);
+            --shadow-light: rgba(60, 62, 75, 0.9);
+            --inset-shadow-dark: rgba(20, 20, 25, 0.5);
+            --inset-shadow-light: rgba(60, 62, 75, 0.8);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        ::selection { background-color: transparent; }
+        ::-moz-selection { background-color: transparent; }
+        
+        body {
+            background: var(--bg-color);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: var(--text-color);
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            -moz-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .app-container {
+            width: 100%;
+            max-width: 95vw;
+            height: 95vh;
+            background: var(--bg-color);
+            border-radius: 40px;
+            box-shadow: 
+                -12px -12px 25px var(--shadow-light), 
+                12px 12px 25px var(--shadow-dark);
+            border: 1px solid rgba(0,0,0,0.2);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .screen {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+            width: 100%;
+        }
+
+        .screen.hidden {
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            transform: scale(0.95);
+            pointer-events: none;
+        }
+
+        #videoScreen {
+            padding: 0;
+            justify-content: flex-start;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .input-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 30px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 18px 25px 18px 55px;
+            font-size: 1.1rem;
+            background: var(--bg-color);
+            border: none;
+            border-radius: 50px;
+            color: var(--text-color);
+            box-shadow: 
+                inset 5px 5px 10px var(--inset-shadow-dark), 
+                inset -5px -5px 10px var(--inset-shadow-light);
+            transition: all 0.3s;
+        }
+        
+        .link-icon {
+            position: absolute;
+            left: 25px;
+            top: 50%;
+            transform: translateY(-50%) rotate(-45deg);
+            width: 22px;
+            height: 10px;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .link-icon::before,
+        .link-icon::after {
+            content: '';
+            position: absolute;
+            box-sizing: border-box;
+            width: 15px;
+            height: 10px;
+            border: 2.5px solid currentColor;
+            border-radius: 8px;
+        }
+        .link-icon::before { top: 0; left: 0; }
+        .link-icon::after { top: 0; left: 7px; }
+        
+        .input-field:focus {
+            outline: none;
+        }
+        
+        .preset-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .number-button {
+            background: var(--bg-color);
+            color: var(--text-muted);
+            border: 1px solid rgba(0,0,0,0.1);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 
+                inset 4px 4px 8px var(--inset-shadow-dark), 
+                inset -4px -4px 8px var(--inset-shadow-light);
+            transform: translateY(1px);
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .number-button.active {
+            color: var(--text-color); /* Isse active button ka color safed ho jayega */
+        }
+
+        .number-button:active {
+            box-shadow: 
+                inset 6px 6px 10px var(--inset-shadow-dark), 
+                inset -6px -6px 10px var(--inset-shadow-light);
+        }
+        
+        .custom-input {
+            width: 120px;
+            padding: 10px;
+            font-size: 1.1rem;
+            text-align: center;
+            background: var(--bg-color);
+            border: none;
+            color: var(--text-color);
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 
+                inset 4px 4px 8px var(--inset-shadow-dark), 
+                inset -4px -4px 8px var(--inset-shadow-light);
+        }
+
+        /* Yah code focus outline ko hatata hai */
+        .custom-input:focus {
+            outline: none;
+        }
+
+        .load-button {
+            width: 120px;
+            padding: 10px;
+            font-size: 1.1rem;
+            text-align: center;
+            background: var(--bg-color);
+            border: none;
+            color: var(--text-color);
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: 
+                inset 4px 4px 8px var(--inset-shadow-dark), 
+                inset -4px -4px 8px var(--inset-shadow-light);
+            transition: all 0.2s ease-in-out;
+        }
+        
+        /* --- START OF CHANGE --- */
+        .load-button:hover {
+            /* color: var(--primary-color);  <-- मैंने इस लाइन को हटा दिया है */
+        }
+        /* --- END OF CHANGE --- */
+
+        .load-button:active {
+             box-shadow: 
+                inset 6px 6px 10px var(--inset-shadow-dark), 
+                inset -6px -6px 10px var(--inset-shadow-light);
+             transform: translateY(1px);
+        }
+        
+        .video-grid-wrapper {
+            flex-grow: 1;
+            flex-basis: 0;
+            overflow-y: auto;
+            padding: 20px;
+            width: 100%;
+        }
+
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+        }
+        
+        .video-container {
+            background: var(--bg-color);
+            border-radius: 20px;
+            box-shadow: 
+                8px 8px 18px var(--shadow-dark),
+                -8px -8px 18px var(--shadow-light);
+            overflow: hidden;
+            border: 1px solid rgba(0,0,0,0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+            animation: fadeInUp 0.5s forwards;
+        }
+
+        .video-container:hover {
+            transform: scale(1.03);
+            box-shadow: 
+                10px 10px 22px var(--shadow-dark), 
+                -10px -10px 22px var(--shadow-light);
+        }
+        
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .player {
+            width: 100%;
+            height: 200px;
+            border: none;
+            border-radius: 20px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding: 20px;
+            width: 100%;
+        }
+        
+        .control-button {
+            background: var(--bg-color);
+            color: var(--text-color);
+            border: 1px solid rgba(0,0,0,0.1);
+            padding: 12px 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            min-width: 140px;
+            box-shadow: 
+                inset 4px 4px 8px var(--inset-shadow-dark), 
+                inset -4px -4px 8px var(--inset-shadow-light);
+            transform: translateY(1px);
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .control-button .fas {
+            font-size: 1.1em;
+        }
+        
+        .control-button:hover {
+            transform: translateY(-1px);
+        }
+
+         .control-button:active {
+            box-shadow: 
+                inset 6px 6px 10px var(--inset-shadow-dark), 
+                inset -6px -6px 10px var(--inset-shadow-light);
+            transform: translateY(2px);
+        }
+        
+        #toggleMuteAll:hover,
+        #closeAll:hover,
+        #playAll:hover {
+            color: var(--text-color); 
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 0; }
+            .app-container { height: 100vh; max-width: 100vw; border-radius: 0; }
+            .video-grid { grid-template-columns: 1fr; gap: 15px; }
+            .player { height: 200px; }
+            .controls { gap: 10px; }
+            .control-button { min-width: 120px; padding: 8px 15px; font-size: 0.8rem;}
+        }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+    <div class="app-container">
+        
+        <div id="inputScreen" class="screen">
+            <div class="input-wrapper">
+                <span class="link-icon"></span>
+                <input type="text" class="input-field" id="youtubeLink" placeholder="Paste YouTube Link...">
+            </div>
+            <div class="preset-buttons">
+                <button class="number-button" data-count="5">5</button>
+                <button class="number-button" data-count="10">10</button>
+                <button class="number-button" data-count="15">15</button>
+                <button class="number-button" data-count="20">20</button>
+                <button class="number-button" data-count="25">25</button>
+            </div>
+            <input type="number" class="custom-input" id="customCount" placeholder="Custom" min="1" max="100">
+            <button class="load-button" id="loadButton">Add</button>
+        </div>
+        
+        <div id="videoScreen" class="screen hidden">
+            <div class="controls" id="controls">
+                <button class="control-button" id="playAll">
+                    <i class="fas fa-play"></i>
+                    <span class="btn-text">Play All</span>
+                </button>
+                <button class="control-button" id="toggleMuteAll">
+                    <i class="fas fa-volume-mute"></i>
+                    <span class="btn-text">Mute All</span>
+                </button>
+                <button class="control-button" id="closeAll">
+                    <i class="fas fa-times"></i>
+                    <span class="btn-text">Close All</span>
+                </button>
+            </div>
+            <div class="video-grid-wrapper">
+                <div class="video-grid" id="videoGrid"></div>
+            </div>
+        </div>
+        
+    </div>
+
+    <script>
+        window.addEventListener('selectstart', function(e){ e.preventDefault(); });
+        document.addEventListener('mousedown', function(e) {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                return;
+            }
+            e.preventDefault();
+        }, false);
+
+        let players = [];
+        let videoId = '';
+        let playerCount = 0;
+        let isMuted = false;
+        let isPlaying = false; 
+        
+        const inputScreen = document.getElementById('inputScreen');
+        const videoScreen = document.getElementById('videoScreen');
+        const videoGrid = document.getElementById('videoGrid');
+        const youtubeLink = document.getElementById('youtubeLink');
+        const customCount = document.getElementById('customCount');
+        const loadButton = document.getElementById('loadButton');
+        const playAllButton = document.getElementById('playAll');
+        const closeAllButton = document.getElementById('closeAll');
+        const toggleMuteAllButton = document.getElementById('toggleMuteAll');
+        const numberButtons = document.querySelectorAll('.number-button');
+        
+        numberButtons.forEach(button => {
+            button.addEventListener('click', (e) => { // 'e' event object যোগ করা হয়েছে
+                e.preventDefault(); // ডিফল্ট ব্রাউজার অ্যাকশন বন্ধ করা হয়েছে
+                numberButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                playerCount = parseInt(button.getAttribute('data-count'));
+                customCount.value = playerCount;
+                customCount.blur(); // কাস্টম ইনপুট থেকে ফোকাস সরানো হয়েছে
+            });
+        });
+        
+        customCount.addEventListener('input', () => {
+            playerCount = parseInt(customCount.value) || 0;
+            numberButtons.forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-count') == playerCount);
+            });
+        });
+        
+        loadButton.addEventListener('click', () => {
+            const url = youtubeLink.value.trim();
+            videoId = extractVideoId(url);
+            
+            if (!videoId) {
+                alert('Please enter a valid YouTube URL');
+                return;
+            }
+            if (playerCount < 1) {
+                alert('Please select a valid number of players');
+                return;
+            }
+            
+            inputScreen.classList.add('hidden');
+            videoScreen.classList.remove('hidden');
+
+            // Set the initial state: videos are muted.
+            isMuted = true;
+            
+            createPlayers(playerCount);
+        });
+        
+        playAllButton.addEventListener('click', () => {
+            const buttonIcon = playAllButton.querySelector('.fas');
+            const buttonText = playAllButton.querySelector('.btn-text');
+
+            if (isPlaying) {
+                pauseAllVideos();
+                buttonIcon.classList.remove('fa-pause');
+                buttonIcon.classList.add('fa-play');
+                buttonText.textContent = 'Play All';
+            } else {
+                playAllVideos();
+                buttonIcon.classList.remove('fa-play');
+                buttonIcon.classList.add('fa-pause');
+                buttonText.textContent = 'Play All';
+            }
+            isPlaying = !isPlaying;
+        });
+
+        closeAllButton.addEventListener('click', () => closeAllVideos());
+        toggleMuteAllButton.addEventListener('click', () => toggleMuteAll());
+        
+        function extractVideoId(url) {
+            const regExp = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+            const match = url.match(regExp);
+            return match ? match[1] : false;
+        }
+        
+        function createPlayers(count) {
+            for (let i = 0; i < count; i++) {
+                const container = document.createElement('div');
+                container.className = 'video-container';
+                container.style.animationDelay = `${(players.length + i) * 0.05}s`;
+                
+                const iframe = document.createElement('iframe');
+                iframe.className = 'player';
+                
+                iframe.src = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&autoplay=0&mute=1&controls=0&modestbranding=1&loop=1&playlist=${videoId}&origin=${window.location.origin}`;
+                
+                iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
+                iframe.setAttribute('allowfullscreen', '');
+                
+                container.appendChild(iframe);
+                videoGrid.appendChild(container);
+                
+                iframe.playerInit = () => new YT.Player(iframe, {
+                    events: {
+                        'onReady': onPlayerReady,
+                        'onError': onPlayerError
+                    }
+                });
+            }
+
+            if (window.YT && window.YT.Player) {
+                document.querySelectorAll('.player:not([id])').forEach(iframe => {
+                    if (iframe.playerInit) {
+                       iframe.playerInit();
+                       delete iframe.playerInit;
+                    }
+                });
+            }
+        }
+        
+        function onPlayerReady(event) {
+            players.push(event.target);
+        }
+
+        function onPlayerError(event) {
+            console.error('YouTube Player Error:', event.data);
+        }
+
+        function playAllVideos() {
+            players.forEach(player => {
+                if (player && typeof player.playVideo === 'function') {
+                    player.playVideo();
+                }
+            });
+        }
+        
+        function pauseAllVideos() {
+            players.forEach(player => {
+                if (player && typeof player.pauseVideo === 'function') {
+                    player.pauseVideo();
+                }
+            });
+        }
+
+        function toggleMuteAll() {
+            const buttonIcon = toggleMuteAllButton.querySelector('.fas');
+            const buttonText = toggleMuteAllButton.querySelector('.btn-text');
+
+            if (isMuted) {
+                // If videos are muted, unmute them
+                players.forEach(player => {
+                    if (player && typeof player.unMute === 'function') {
+                        player.unMute();
+                    }
+                });
+
+                // And change the button to show "Unmute All"
+                buttonIcon.classList.remove('fa-volume-mute');
+                buttonIcon.classList.add('fa-volume-up');
+                buttonText.textContent = 'Unmute All';
+                isMuted = false;
+
+            } else {
+                // If videos are not muted, mute them
+                players.forEach(player => {
+                    if (player && typeof player.mute === 'function') {
+                        player.mute();
+                    }
+                });
+                
+                // And change the button back to "Mute All"
+                buttonIcon.classList.remove('fa-volume-up');
+                buttonIcon.classList.add('fa-volume-mute');
+                buttonText.textContent = 'Mute All';
+                isMuted = true;
+            }
+        }
+        
+        function closeAllVideos() {
+            videoGrid.innerHTML = '';
+            players = [];
+            videoScreen.classList.add('hidden');
+            inputScreen.classList.remove('hidden');
+
+            // Reset the mute button to its default state
+            isMuted = false;
+            const muteButtonIcon = toggleMuteAllButton.querySelector('.fas');
+            const muteButtonText = toggleMuteAllButton.querySelector('.btn-text');
+            muteButtonIcon.classList.remove('fa-volume-up');
+            muteButtonIcon.classList.add('fa-volume-mute');
+            muteButtonText.textContent = 'Mute All';
+
+            // Reset the play/pause button to its default state
+            isPlaying = false;
+            const playButtonIcon = playAllButton.querySelector('.fas');
+            const playButtonText = playAllButton.querySelector('.btn-text');
+            playButtonIcon.classList.remove('fa-pause');
+            playButtonIcon.classList.add('fa-play');
+            playButtonText.textContent = 'Play All';
+        }
+        
+        let tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        let firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        
+        window.onYouTubeIframeAPIReady = function() {
+            document.querySelectorAll('.player').forEach(iframe => {
+                if (iframe.playerInit) {
+                   iframe.playerInit();
+                   delete iframe.playerInit;
+                }
+            });
+        };
+    </script>
+</body>
+</html>
